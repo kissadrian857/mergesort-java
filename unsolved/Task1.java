@@ -1,40 +1,80 @@
 import java.util.Arrays;
 
-/* Task1: slicing and merging on 1 thread, sorting slices is parralelized */
 public class Task1 {
 
-  /* Create new sorted array by merging 2 smaller sorted arrays */
-  private static int[] merge(int[] arr1, int[] arr2) {
-    // TODO: merge sorted arrays 'arr1' and 'arr2'
-    return null;
-  }
+    private static int[] merge(int[] arr1, int[] arr2) {
+        int[] result = new int[arr1.length + arr2.length];
 
-  /* Creates an array of arrays by slicing a bigger array into smaller chunks */
-  private static int[][] slice(int[] arr, int k) {
-    //TODO: cut 'arr' into 'k' smaller arrays
-    return null;
-  }
+        int i = 0, j = 0, k = 0;
+        while (i < arr1.length && j < arr2.length) {
+            if (arr1[i] <= arr2[j]) {
+                result[k++] = arr1[i++];
+            } else {
+                result[k++] = arr2[j++];
+            }
+        }
+        while (i < arr1.length) {
+            result[k++] = arr1[i++];
+        }
+        while (j < arr2.length) {
+            result[k++] = arr2[j++];
+        }
 
+        return result;
+    }
 
-  /* Creates a sorted version of any int array */
-  public static int[] sort(int[] array) {
+    private static int[][] slice(int[] arr, int k) {
+        if (k == 0) {
+            throw new IllegalArgumentException();
+        }
 
-    /* Initialize variables */
-    // TODO: check available processors and create necessary variables
+        int[][] result = new int[k][];
+        int remainingSubArrays = k, remainingElements = arr.length;
 
-    /* Turn initial array into array of smaller arrays */
-    // TODO: use 'slice()' method to cut 'array' into smaller bits
+        int i = 0, index = 0, chunkLength;
+        do {
+            chunkLength = (int) Math.ceil((double) remainingElements / remainingSubArrays);
+            result[index] = getSlice(arr, i, chunkLength);
+            remainingSubArrays--;
+            remainingElements -= chunkLength;
+            index++;
+            i += chunkLength;
+        } while (index < k);
+        return result;
+    }
 
-    /* parralelized sort on the smaller arrays */
-    // TODO: use multiple threads to sort smaller arrays (Arrays.sort())
+    private static int[] getSlice(int[] arr, int start, int len) {
+        int[] result = new int[len];
+        for (int i = 0; i < len; i++) {
+            result[i] = arr[start + i];
+        }
+        return result;
+    }
 
-    /* Merge sorted smaller arrays into a singular larger one */
-    // TODO: merge into one big array using 'merge()' multiple times
-    //       create an empty array called 'sorted' and in a for cycle use
-    //       'merge(sorted, arr2d[i])' where arr2d is an array of sorted arrays
+    public static int[] sort(int[] array) {
+        int[][] subArrays;
+        int[] sorted = new int[0];
+        int k = Runtime.getRuntime().availableProcessors();
 
-    /* Return fully sorted array */
-    // TODO: return the sorted array and delete all lines starting with '//'
-    return null;
-  }
+        subArrays = slice(array, k);
+
+        for (int[] subArray : subArrays) {
+            Arrays.sort(subArray);
+        }
+
+        for (int[] subArray : subArrays) {
+            sorted = merge(sorted, subArray);
+        }
+
+        return sorted;
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {10, 6, 5, 12, 56, 32, 48, 1, 2, 3};
+        int[][] sliced = slice(arr, 6);
+        int[] sorted = sort(arr);
+        for (int number : sorted) {
+            System.out.println(number + " ");
+        }
+    }
 }
