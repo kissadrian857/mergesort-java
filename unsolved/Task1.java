@@ -1,4 +1,6 @@
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Task1 {
 
@@ -58,8 +60,15 @@ public class Task1 {
 
         subArrays = slice(array, k);
 
+        ExecutorService executorService = Executors.newFixedThreadPool(k);
         for (int[] subArray : subArrays) {
-            Arrays.sort(subArray);
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Arrays.sort(subArray);
+                    System.out.println("The Thread name is " + Thread.currentThread().getName());
+                }
+            });
         }
 
         for (int[] subArray : subArrays) {
