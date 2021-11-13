@@ -66,24 +66,15 @@ public class Task1 {
                 @Override
                 public void run() {
                     Arrays.sort(subArray);
-                    System.out.println("The Thread name is " + Thread.currentThread().getName());
                 }
             });
         }
+        executorService.shutdown();
 
         for (int[] subArray : subArrays) {
             sorted = merge(sorted, subArray);
         }
 
         return sorted;
-    }
-
-    public static void main(String[] args) {
-        int[] arr = {10, 6, 5, 12, 56, 32, 48, 1, 2, 3};
-        int[][] sliced = slice(arr, 6);
-        int[] sorted = sort(arr);
-        for (int number : sorted) {
-            System.out.println(number + " ");
-        }
     }
 }
