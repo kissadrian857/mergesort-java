@@ -6,12 +6,8 @@ public class Task2 {
     /* Create new sorted array by merging 2 smaller sorted arrays */
     private static void merge(int[] src, int idx1, int idx2, int end) {
         int[] l = new int[idx2 - idx1], r = new int[end - idx2];
-        try {
-            l = getSlice(src, idx1, idx2);
-            r = getSlice(src, idx2, end);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println(end);
-        }
+        l = getSlice(src, idx1, idx2);
+        r = getSlice(src, idx2, end);
 
         int i = 0, j = 0, k = 0;
         while (i < idx2 - idx1 && j < end - idx2) {
@@ -82,7 +78,7 @@ public class Task2 {
     public static int[] sort(int[] array) {
 
         /* Initialize variables */
-        int[] src = array;
+        int[] src = array.clone();
         int start = 0, end = array.length;
 
         /* Calculate optimal depth */
