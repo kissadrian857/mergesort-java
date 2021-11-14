@@ -40,7 +40,7 @@ public class Tester {
         end = System.currentTimeMillis();
         System.out.println("sort2: " + (end - begin) + "ms");
 
-//    /* Check correctness (use -ea flag to enable) */
+    /* Check correctness (use -ea flag to enable) */
         assert Arrays.equals(array, arrayBackUp);
         assert Arrays.equals(sortedDefault, sortedTask1);
         assert Arrays.equals(sortedDefault, sortedTask2);

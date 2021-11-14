@@ -1,52 +1,99 @@
 import java.util.Arrays;
 
-/* Task2: no slicing, no bullshit memcopy, parralelized merge */
+/* Task2: no slicing, no bullshit memcopy, parallelized merge */
 public class Task2 {
 
-  /* Create new sorted array by merging 2 smaller sorted arrays */
-  private static void merge(int[] src, int[] dst, int idx1, int idx2, int end) {
-		// TODO: 'src' is sorted between [idx1,idx2) and [idx2,end)
-    //       copy both to 'dst' in a way that [idx1,end) is sorted for 'dst'
-    // Note: 'idx1' is the starting point of the 1st array
-    //       'idx2' is the starting point of the 2nd array
-    //       'end' is the end of the 2nd array (exclusive)
-    //       There are no elements between the first and second arrays
-    //       'src' is the source, this is where the 2 smaller sorted arrays are
-    //       'dst' is the destination, this is where you have to move data
-    //       Merge the 2 smaller arrays using the same methodology as in 'Task1'
-	}
+    /* Create new sorted array by merging 2 smaller sorted arrays */
+    private static void merge(int[] src, int idx1, int idx2, int end) {
+        int[] l = new int[idx2 - idx1], r = new int[end - idx2];
+        try {
+            l = getSlice(src, idx1, idx2);
+            r = getSlice(src, idx2, end);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println(end);
+        }
 
-  /* Recursive core, calls a sibling thread until max depth is reached */
-  public static void kernel(int[] src, int[] dst, int start, int end, int depth) {
+        int i = 0, j = 0, k = 0;
+        while (i < idx2 - idx1 && j < end - idx2) {
+            if (l[i] <= r[j]) {
+                src[idx1 + k++] = l[i++];
+            } else {
+                src[idx1 + k++] = r[j++];
+            }
+        }
+        while (i < idx2 - idx1) {
+            src[idx1 + k++] = l[i++];
+        }
+        while (j < end - idx2) {
+            src[idx1 + k++] = r[j++];
+        }
+    }
 
-    /* Single thread sort if bottom has been reached
-    // TODO: simply sort the array using 'Arrays.sort()' if depth is zero.
+    private static int[] getSlice(int[] arr, int start, int end) {
+        int[] result = new int[end - start];
+        for (int i = start; i < end; i++) {
+            result[i - start] = arr[i];
+        }
+        return result;
+    }
 
-    /* Otherwise split task into two recursively */
-    // TODO: summon another thread and recursively sort left and right half
-    // NOTE: don't forget to make recursive call with 'depth-1'
+    /* Recursive core, calls a sibling thread until max depth is reached */
+    public static void kernel(int[] src, int start, int end, int depth) {
+        if (depth == 0) {
+            int[] helper = new int[end - start];
+            for (int i = 0; i < end - start; i++) {
+                helper[i] = src[start + i];
+            }
+            Arrays.sort(helper);
+            for (int i = 0; i < helper.length; i++) {
+                src[start + i] = helper[i];
+            }
+            return;
+        }
+        int mid = (end + start) / 2;
+        Thread leftThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                kernel(src, start, mid, depth - 1);
+            }
+        });
 
-  }
+        Thread rightThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                kernel(src, mid, end, depth - 1);
+            }
+        });
 
-  /* Creates a sorted version of any int array */
-  public static int[] sort(int[] array) {
+        leftThread.start();
+        rightThread.start();
 
-    /* Initialize variables */
-    // TODO: Create 'src' and 'dst' arrays
+        try {
+            leftThread.join();
+            rightThread.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-    /* Calculate optimal depth */
-    int minSize   = 1000;
-    int procNum   = Runtime.getRuntime().availableProcessors();
-    int procDepth = (int) Math.ceil(Math.log(procNum) / Math.log(2));
-    int arrDepth  = (int) (Math.log(array.length / minSize) / Math.log(2));
-    int optDepth  = Math.max(0, Math.min(procDepth, arrDepth));
+        merge(src, start, mid, end);
+    }
 
-    /* Launch recursive core */
-    // TODO: launch kernel, call with 'optDepth' (not 'optDepth-1')
+    /* Creates a sorted version of any int array */
+    public static int[] sort(int[] array) {
 
-    // TODO: return src or dst depending on the parity of the used depth
-    // TODO: delete all lines starting with '//'
-    return null;
+        /* Initialize variables */
+        int[] src = array;
+        int start = 0, end = array.length;
 
-  }
+        /* Calculate optimal depth */
+        int minSize = 1000;
+        int procNum = Runtime.getRuntime().availableProcessors();
+        int procDepth = (int) Math.ceil(Math.log(procNum) / Math.log(2));
+        int arrDepth = (int) (Math.log(array.length / minSize) / Math.log(2));
+        int optDepth = Math.max(0, Math.min(procDepth, arrDepth));
+
+        kernel(src, start, end, optDepth);
+        return src;
+
+    }
 }
